@@ -79,7 +79,7 @@ function BookingContent() {
       });
 
       if (data?.bookSeats) {
-        alert('Seats booked successfully!');
+        alert('Места успешно забронированы!');
         setSelectedSeats([]); // Очистка выбранных мест после бронирования
       }
     } catch (err) {

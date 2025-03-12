@@ -1,42 +1,44 @@
-import express, { Express } from 'express';
-import { ApolloServer } from 'apollo-server-express';
+import express from 'express';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
 import cors from 'cors';
-import { typeDefs } from './schema.js';
-import { resolvers } from './resolvers.js';
-import { initRedis } from './redis.mock.js';  // .js остается в импорте
-import { initKafka, sendBookingMessage } from './kafka.mock.js';
+import { typeDefs } from './schema';
+import { resolvers } from './resolvers';
+import { initKafka } from './kafka';
+import { initRedis } from './redis';
+import jwt from 'jsonwebtoken';
 
-const app: Express = express();
-
-// Настройка CORS
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
-
+const app = express();
+await Promise.all([initRedis(), initKafka()]);
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req, res }) => ({ req, res })
 });
 
-async function startServer() {
-  await server.start();
-  
-  server.applyMiddleware({ 
-    app: app as any,
-    cors: false
-  });
+await server.start();
 
-  await initRedis();
-  await initKafka();
+app.use(
+  '/graphql',
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  }),
+  express.json(),
+  expressMiddleware(server, {
+    context: async ({ req }) => {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) return {};
 
-  const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}${server.graphqlPath}`);
-  });
-}
+      try {
+        const user = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        return { user };
+      } catch {
+        return {};
+      }
+    },
+  }),
+);
 
-startServer().catch(console.error);
-
-export { sendBookingMessage };  // Оставляем только sendBookingMessage
+app.listen(4000, () => {
+  console.log('Server ready at http://localhost:4000/graphql');
+});

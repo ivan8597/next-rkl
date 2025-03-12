@@ -13,24 +13,36 @@ self.addEventListener('push', (event) => {
   console.log('Push notification received', event);
 
   const data = event.data?.json() ?? {
-    title: 'Default Title',
-    body: 'Default message'
+    title: 'Booking Update',
+    body: 'There has been an update to your booking'
+  };
+
+  const options = {
+    body: data.body,
+    icon: '/icon.png',
+    badge: '/badge.png',
+    data: data,
+    actions: [
+      {
+        action: 'view',
+        title: 'View Booking'
+      }
+    ]
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: '/icon.png',
-      badge: '/badge.png'
-    })
+    self.registration.showNotification(data.title, options)
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   console.log('Notification clicked', event);
-  event.notification.close();
   
-  event.waitUntil(
-    clients.openWindow('/')
-  );
+  if (event.action === 'view') {
+    clients.openWindow('/booking');
+  } else {
+    clients.openWindow('/');
+  }
+  
+  event.notification.close();
 }); 

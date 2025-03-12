@@ -1,10 +1,11 @@
 import { Providers } from '@/components/Providers';
-import '../styles/globals.css';
+import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Booking App',
-  description: 'Book seats for cinema, airplane, or concerts',
+  title: 'Система бронирования',
+  description: 'Бронирование мест',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <body>
         <Providers>{children}</Providers>
       </body>

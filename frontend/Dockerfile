@@ -1,15 +1,14 @@
-FROM node:18 AS build
+FROM node:18-alpine
+
 WORKDIR /app
-COPY package.json package-lock.json ./
+
+COPY package*.json ./
 RUN npm install
+
 COPY . .
 RUN npm run build
 
-FROM node:18
-WORKDIR /app
-COPY --from=build /app/.next ./.next
-COPY --from=build /app/public ./public
-COPY --from=build /app/package.json ./
-RUN npm install --production
+ENV NEXT_PUBLIC_API_URL=http://localhost:4000
+
 EXPOSE 3000
 CMD ["npm", "start"]
