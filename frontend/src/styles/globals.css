@@ -1,0 +1,28 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.seat-map {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 5px;
+}
+
+.seat {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+  cursor: pointer;
+}
+
+.seat.booked {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.seat.selected {
+  background-color: #4caf50;
+  color: white;
+}

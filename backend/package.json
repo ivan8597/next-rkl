@@ -1,0 +1,27 @@
+{
+  "scripts": {
+    "start": "node --experimental-specifier-resolution=node dist/index.js",
+    "dev": "nodemon --experimental-specifier-resolution=node --exec ts-node src/index.ts",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "apollo-server-express": "^3.12.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "graphql": "^16.8.1",
+    "kafkajs": "^2.2.4",
+    "redis": "^4.6.7",
+    "web-push": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.0.0",
+    "@types/web-push": "^3.6.4",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  },
+  "type": "module"
+}
