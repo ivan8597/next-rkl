@@ -13,20 +13,18 @@ const GET_SEATS = gql`
       number
       status
       type
-      expiresIn
     }
   }
 `;
 
 const BOOK_SEATS = gql`
-  mutation BookSeats($seatIds: [Int!]!, $type: String!) {
+  mutation BookSeats($seatIds: [String!]!, $type: String!) {
     bookSeats(seatIds: $seatIds, type: $type) {
       id
       row
       number
       status
       type
-      expiresIn
     }
   }
 `;
@@ -34,12 +32,11 @@ const BOOK_SEATS = gql`
 type EventType = 'cinema' | 'airplane' | 'concert';
 
 interface Seat {
-  id: number;
+  id: string;
   row: number;
   number: number;
   status: 'available' | 'booked';
   type: EventType;
-  expiresIn?: number;
 }
 
 interface SeatsData {
@@ -49,7 +46,7 @@ interface SeatsData {
 const eventLabels: Record<EventType, string> = {
   cinema: 'Кинотеатр',
   airplane: 'Самолет',
-  concert: 'Концерт'
+  concert: 'Концерт',
 };
 
 export default function Home() {
@@ -64,9 +61,10 @@ export default function Home() {
     }
   }, [loading, isAuthenticated, router]);
 
-  const { loading: seatsLoading, error, data } = useQuery<SeatsData>(GET_SEATS, {
+  const { loading: seatsLoading, error, data, refetch } = useQuery<SeatsData>(GET_SEATS, {
     variables: { type: eventType },
-    skip: !isAuthenticated || loading
+    skip: !isAuthenticated || loading,
+    fetchPolicy: 'network-only', // Добавляем для получения свежих данных
   });
 
   const [bookSeats] = useMutation<{ bookSeats: Seat[] }>(BOOK_SEATS, {
@@ -75,40 +73,43 @@ export default function Home() {
       const bookedSeat = bookingData.bookSeats[0];
       const queryData = cache.readQuery<SeatsData>({
         query: GET_SEATS,
-        variables: { type: eventType }
+        variables: { type: eventType },
       });
-      
+
       if (!queryData) return;
 
       cache.writeQuery({
         query: GET_SEATS,
         variables: { type: eventType },
         data: {
-          seats: queryData.seats.map(seat =>
+          seats: queryData.seats.map((seat) =>
             seat.id === bookedSeat.id ? bookedSeat : seat
-          )
-        }
+          ),
+        },
       });
-    }
+    },
   });
 
-  const handleSeatClick = async (seat: any) => {
+  const handleSeatClick = async (seat: Seat) => {
     if (seat.status === 'booked') return;
 
     try {
+      const seatId = `${eventType}-${seat.row}-${seat.number}`;
+      console.log('Booking seat:', { seatId, type: eventType });
       await bookSeats({
         variables: {
-          seatIds: [seat.id],
-          type: eventType
-        }
+          seatIds: [seatId],
+          type: eventType,
+        },
       });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      refetch(); // Обновляем данные после бронирования
     } catch (error: any) {
+      console.error('Booking error:', error);
       if (error.message === 'Not authenticated') {
         router.push('/auth/signin');
       } else {
-        console.error('Booking error:', error);
         alert(error.message || 'Ошибка при бронировании места');
       }
     }
@@ -120,13 +121,13 @@ export default function Home() {
   if (!data?.seats) return <p className="p-4">Нет мест</p>;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="container mx-auto p-4 bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen relative"
     >
       <div className="flex justify-between items-center mb-8">
-        <motion.h1 
+        <motion.h1
           initial={{ y: -20 }}
           animate={{ y: 0 }}
           className="text-3xl font-bold text-indigo-900"
@@ -144,17 +145,17 @@ export default function Home() {
           </button>
         </div>
       </div>
-      
+
       <div className="flex gap-4 mb-8">
-        {(['cinema', 'airplane', 'concert'] as EventType[]).map(type => (
+        {(['cinema', 'airplane', 'concert'] as EventType[]).map((type) => (
           <motion.button
             key={type}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`
               p-4 rounded-lg capitalize font-medium shadow-md
-              ${eventType === type 
-                ? 'bg-indigo-600 text-white' 
+              ${eventType === type
+                ? 'bg-indigo-600 text-white'
                 : 'bg-white text-indigo-600 hover:bg-indigo-50'
               }
             `}
@@ -170,11 +171,8 @@ export default function Home() {
         <p>Количество мест: {data.seats.length}</p>
       </div>
 
-      <motion.div 
-        layout
-        className="grid grid-cols-3 gap-6 mb-6"
-      >
-        {data.seats.map((seat: any) => (
+      <motion.div layout className="grid grid-cols-3 gap-6 mb-6">
+        {data.seats.map((seat) => (
           <motion.button
             key={seat.id}
             layout
@@ -184,8 +182,8 @@ export default function Home() {
             whileTap={{ scale: 0.95 }}
             className={`
               group relative p-6 rounded-lg shadow-lg
-              ${seat.status === 'booked' 
-                ? 'bg-rose-500 text-white cursor-not-allowed' 
+              ${seat.status === 'booked'
+                ? 'bg-rose-500 text-white cursor-not-allowed'
                 : 'bg-emerald-500 text-white hover:bg-indigo-500 transition-colors'
               }
             `}
@@ -197,17 +195,15 @@ export default function Home() {
             <div className="text-sm opacity-75">
               {seat.status === 'booked' ? 'Забронировано' : 'Свободно'}
             </div>
-            
-            {/* Tooltip */}
+
             <motion.div
               initial={{ opacity: 0 }}
               whileHover={{ opacity: 1 }}
               className="absolute -top-12 left-1/2 -translate-x-1/2 bg-black text-white text-sm px-3 py-1 rounded whitespace-nowrap pointer-events-none"
             >
-              {seat.status === 'booked' 
+              {seat.status === 'booked'
                 ? 'Это место уже забронировано'
-                : 'Нажмите для бронирования (15 минут)'
-              }
+                : 'Нажмите для бронирования (15 минут)'}
             </motion.div>
           </motion.button>
         ))}
@@ -222,7 +218,7 @@ export default function Home() {
             className="fixed bottom-4 right-4 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg"
           >
             <p>Место забронировано успешно!</p>
-            <p className="text-sm opacity-90"> Время бронирования 15 минут </p>
+            <p className="text-sm opacity-90">Время бронирования 15 минут</p>
           </motion.div>
         )}
       </AnimatePresence>

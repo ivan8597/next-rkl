@@ -1,11 +1,16 @@
-import { Providers } from '@/components/Providers';
+import { Providers } from '../components/Providers';
 import './globals.css';
 import type { Metadata } from 'next';
+import type { Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Система бронирования',
-  description: 'Бронирование мест',
-  viewport: 'width=device-width, initial-scale=1',
+  title: 'Booking System',
+  description: 'A simple booking system',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -16,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+         
+          {children}
+        </Providers>
       </body>
     </html>
   );

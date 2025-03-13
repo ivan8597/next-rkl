@@ -1,6 +1,7 @@
 export interface Seat {
-  id: number;
-  row: string;
+  id: string;
+  row: number;
   number: number;
   status: 'available' | 'booked';
+  type: string;
 }

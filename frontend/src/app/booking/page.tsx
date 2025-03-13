@@ -20,8 +20,8 @@ const GET_SEATS = gql`
 
 // Мутация для бронирования мест
 const BOOK_SEATS = gql`
-  mutation BookSeats($seatIds: [Int!]!) {
-    bookSeats(seatIds: $seatIds) {
+  mutation BookSeats($seatIds: [String!]!, $type: String!) {
+    bookSeats(seatIds: $seatIds, type: $type) {
       id
       row
       number
@@ -33,20 +33,26 @@ const BOOK_SEATS = gql`
 function BookingContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') || 'cinema';
-  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-  const { data, loading, error } = useQuery(GET_SEATS, { variables: { type } });
+  const { data, loading, error, refetch } = useQuery(GET_SEATS, {
+    variables: { type },
+    fetchPolicy: 'network-only', // Всегда запрашивать данные с сервера, игнорируя кэш
+    notifyOnNetworkStatusChange: true, // Обновлять состояние при изменении данных
+  });
+
   const [bookSeatsMutation, { loading: bookingLoading, error: bookingError }] = useMutation(BOOK_SEATS);
 
   useEffect(() => {
     subscribeToPush();
-  }, []);
+    refetch(); // Принудительно обновляем данные при изменении type
+    setSelectedSeats([]);
+  }, [type, refetch]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  // Функция бронирования мест
-  async function bookSeats(seats: number[]) {
+  async function bookSeats(seats: string[]) {
     if (seats.length === 0) {
       alert('Please select at least one seat.');
       return;
@@ -54,8 +60,7 @@ function BookingContent() {
 
     try {
       const { data } = await bookSeatsMutation({
-        variables: { seatIds: seats },
-        // Обновление кэша Apollo после успешного бронирования
+        variables: { seatIds: seats, type },
         update: (cache, { data: { bookSeats } }) => {
           const existingSeats = cache.readQuery<{ seats: any[] }>({
             query: GET_SEATS,
@@ -80,7 +85,8 @@ function BookingContent() {
 
       if (data?.bookSeats) {
         alert('Места успешно забронированы!');
-        setSelectedSeats([]); // Очистка выбранных мест после бронирования
+        setSelectedSeats([]);
+        refetch(); // Обновляем данные после бронирования
       }
     } catch (err) {
       console.error('Booking error:', err);
@@ -91,7 +97,7 @@ function BookingContent() {
   return (
     <div className="container">
       <h1>Booking for {type}</h1>
-      <SeatMap seats={data.seats} selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />
+      <SeatMap seats={data?.seats || []} selectedSeats={selectedSeats} setSelectedSeats={setSelectedSeats} />
       <button
         onClick={() => bookSeats(selectedSeats)}
         disabled={bookingLoading || selectedSeats.length === 0}

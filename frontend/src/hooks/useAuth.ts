@@ -45,11 +45,6 @@ interface User {
   name?: string;
 }
 
-interface AuthResponse {
-  token: string;
-  user: User;
-}
-
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,9 +58,8 @@ export function useAuth() {
         setUser({
           id: payload.id,
           email: payload.email,
-          name: payload.name
+          name: payload.name,
         });
-        localStorage.setItem('token', token);
       } catch (e) {
         localStorage.removeItem('token');
         setUser(null);
@@ -89,18 +83,25 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('useAuth: Starting login...', { email, password });
       const { data } = await signIn({
         variables: { email, password },
       });
 
+      console.log('useAuth: Login response:', data);
+      if (!data?.signIn?.token) {
+        console.error('useAuth: No token in response');
+        throw new Error('No token received');
+      }
+
       const newToken = data.signIn.token;
       setUser(data.signIn.user);
       localStorage.setItem('token', newToken);
-      
+      console.log('useAuth: Token saved, user set');
       return data.signIn.user;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('useAuth: Login error:', error);
+      throw new Error(error.graphQLErrors?.[0]?.message || 'Failed to login');
     }
   };
 
@@ -113,20 +114,19 @@ export function useAuth() {
       const newToken = data.signUp.token;
       setUser(data.signUp.user);
       localStorage.setItem('token', newToken);
-      
       return data.signUp.user;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      throw error;
+      throw new Error(error.graphQLErrors?.[0]?.message || 'Failed to register');
     }
   };
 
   return {
     user,
     isAuthenticated: !!user,
-    loading,
+    loading: loading || userLoading,
     logout,
     login,
     register,
   };
-} 
+}

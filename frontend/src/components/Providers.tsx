@@ -1,17 +1,18 @@
 'use client';
 
-import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, from } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, from, gql } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { useRouter } from 'next/navigation';
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/graphql` : 'http://localhost:4000/graphql',
+  uri: 'http://localhost:4000/graphql',
 });
 
 const authLink = setContext((_, { headers }) => {
-  // Получаем токен из localStorage только на клиенте
+  console.log('Setting auth headers');
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  console.log('Current token:', token);
   
   return {
     headers: {
@@ -38,9 +39,15 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 const client = new ApolloClient({
   link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'network-only',
+    },
+  },
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  console.log('Apollo Provider initialized');
   return (
     <ApolloProvider client={client}>
       {children}

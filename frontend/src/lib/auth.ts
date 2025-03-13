@@ -4,6 +4,11 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 console.log('NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET);
 console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
 
+type Credentials = {
+  username: string;
+  password: string;
+} | undefined;
+
 export const authOptions: NextAuthOptions = {
   secret: 's/zZoHuT7mvhUdIWgNrePJRMueETNne4W4PuQSC/GtE=', // Добавлено вручную
   debug: true,
@@ -15,7 +20,7 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials: Credentials, req) {
         console.log('Authorize called with:', credentials);
         if (!credentials?.username || !credentials?.password) {
           throw new Error('Missing username or password');
