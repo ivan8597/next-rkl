@@ -1,6 +1,7 @@
 import { bookSeat, initRedis } from './redis.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { pubsub } from './index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -188,9 +189,24 @@ export const resolvers = {
       for (const seatId of seatIds) {
         const bookedSeat = await bookSeat(seatId, context.user.id, type);
         bookedSeats.push(bookedSeat);
+        // Публикуем событие обновления места
+        pubsub.publish('SEAT_UPDATED', { 
+          seatUpdated: bookedSeat,
+          type: bookedSeat.type
+        });
       }
       
       return bookedSeats;
+    },
+  },
+  Subscription: {
+    seatUpdated: {
+      subscribe: (_: any, { type }: { type: string }) => {
+        return {
+          [Symbol.asyncIterator]: () => pubsub.asyncIterator(['SEAT_UPDATED']),
+          filter: (payload: any) => payload.type === type
+        };
+      },
     },
   },
 };

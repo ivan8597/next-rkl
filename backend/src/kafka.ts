@@ -1,5 +1,6 @@
 import { Kafka } from 'kafkajs';
 import createClient from './redis.mock';
+import { pubsub } from './index.js';
 
 const kafka = new Kafka({
   clientId: 'booking-service',
@@ -72,6 +73,12 @@ export async function initKafka() {
                 
                 await redisClient.set(`seat:${seatId}`, JSON.stringify(seat));
                 console.log(`Место ${seatId} освобождено из-за истечения срока`);
+                
+                // Публикуем событие обновления места
+                pubsub.publish('SEAT_UPDATED', { 
+                  seatUpdated: seat,
+                  type: seat.type
+                });
               }
             }
           } catch (error) {
@@ -97,6 +104,12 @@ export async function initKafka() {
           
           await redisClient.set(`seat:${seatId}`, JSON.stringify(seat));
           console.log(`Место ${seatId} освобождено из-за истечения срока`);
+          
+          // Публикуем событие обновления места
+          pubsub.publish('SEAT_UPDATED', { 
+            seatUpdated: seat,
+            type: seat.type
+          });
         }
       }
     },

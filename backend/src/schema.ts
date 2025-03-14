@@ -70,4 +70,8 @@ export const typeDefs = gql`
     createdAt: String!
     status: BookingStatus!
   }
+
+  type Subscription {
+    seatUpdated(type: String!): Seat
+  }
 `;

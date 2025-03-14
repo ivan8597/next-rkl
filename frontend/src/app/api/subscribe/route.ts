@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     
     if (!subscription) {
       return NextResponse.json(
-        { error: 'No subscription data provided' },
+        { error: 'Нет данных подписки' },
         { status: 400 }
       );
     }
@@ -26,16 +26,16 @@ export async function POST(req: NextRequest) {
     await webpush.sendNotification(
       subscription,
       JSON.stringify({
-        title: 'Subscription',
-        body: 'You are subscribed!'
+        title: 'Подписка',
+        body: 'Вы подписаны!'
       })
     );
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error('Error in subscribe route:', error);
+    console.error('Ошибка в маршруте подписки:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Внутренняя ошибка сервера' },
       { status: 500 }
     );
   }

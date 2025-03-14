@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useMutation, useSubscription, gql } from '@apollo/client';
 import SeatMap from '../../components/SeatMap';
 import { subscribeToPush } from '@/lib/client/push';
+import { client } from '@/components/Providers';
 
 // Запрос для получения мест
 const GET_SEATS = gql`
@@ -36,6 +37,21 @@ const BOOK_SEATS = gql`
   }
 `;
 
+// Подписка на обновления мест
+const SEAT_SUBSCRIPTION = gql`
+  subscription SeatUpdated($type: String!) {
+    seatUpdated(type: $type) {
+      id
+      row
+      number
+      status
+      price
+      category
+      type
+    }
+  }
+`;
+
 function BookingContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') || 'cinema';
@@ -49,9 +65,38 @@ function BookingContent() {
 
   const [bookSeatsMutation, { loading: bookingLoading, error: bookingError }] = useMutation(BOOK_SEATS);
 
+  // Подписываемся на обновления мест
+  useSubscription(SEAT_SUBSCRIPTION, {
+    variables: { type },
+    onData: ({ data }) => {
+      if (data.data?.seatUpdated) {
+        // Обновляем кэш Apollo с новыми данными
+        const updatedSeat = data.data.seatUpdated;
+        const cache = client.cache;
+        
+        const existingSeats = cache.readQuery<{ seats: any[] }>({
+          query: GET_SEATS,
+          variables: { type },
+        });
+        
+        if (existingSeats) {
+          cache.writeQuery({
+            query: GET_SEATS,
+            variables: { type },
+            data: {
+              seats: existingSeats.seats.map((seat) =>
+                seat.id === updatedSeat.id ? updatedSeat : seat
+              ),
+            },
+          });
+        }
+      }
+    },
+  });
+
   useEffect(() => {
     subscribeToPush();
-    refetch(); // Принудительно обновляем данные при изменении type
+    refetch(); // Обновляем данные при изменении type
     setSelectedSeats([]);
   }, [type, refetch]);
 
