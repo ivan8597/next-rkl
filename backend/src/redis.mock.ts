@@ -9,8 +9,9 @@ function generateSeats(type: string) {
 
   for (let row = 1; row <= rows; row++) {
     for (let number = 1; number <= seatsPerRow; number++) {
+      const id = `${type}-${row}-${number}`;
       seatsArray.push({
-        id: (row - 1) * seatsPerRow + number,
+        id,
         row,
         number,
         status: 'available',
@@ -37,6 +38,6 @@ const mockRedis: RedisClientType = {
   disconnect: async () => Promise.resolve()
 } as any;
 
-export default function createClient(_config: any) {
+export default function createClient() {
   return mockRedis;
 } 

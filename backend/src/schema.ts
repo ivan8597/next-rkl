@@ -30,7 +30,7 @@ export const typeDefs = gql`
   }
 
   type Seat {
-    id: Int!
+    id: String!
     row: Int!
     number: Int!
     status: SeatStatus!
@@ -47,6 +47,6 @@ export const typeDefs = gql`
   type Mutation {
     signIn(email: String!, password: String!): AuthResponse!
     signUp(email: String!, password: String!, name: String): AuthResponse!
-    bookSeats(seatIds: [Int!]!, type: String!): [Seat!]!
+    bookSeats(seatIds: [String!]!, type: String!): [Seat!]!
   }
 `;

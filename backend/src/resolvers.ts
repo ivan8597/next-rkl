@@ -1,5 +1,4 @@
 import { bookSeat, initRedis } from './redis.js';
-import { sendBookingMessage } from './kafka.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
@@ -16,7 +15,7 @@ const generateSeats = (type: string) => {
   for (let row = 1; row <= rows; row++) {
     for (let number = 1; number <= seatsPerRow; number++) {
       seats.push({
-        id: (row - 1) * seatsPerRow + number,
+        id: `${type}-${row}-${number}`,
         row,
         number,
         status: 'available',
@@ -31,15 +30,36 @@ export const resolvers = {
   Query: {
     seats: async (_: any, { type }: { type: string }) => {
       const redis = await initRedis();
-      const seatsKey = `seats:${type}`;
+      const generatedSeats = generateSeats(type);
+      const actualSeats = [];
       
-      let seats = await redis.get(seatsKey);
-      if (!seats) {
-        seats = JSON.stringify(generateSeats(type));
-        await redis.set(seatsKey, seats);
+      for (const seat of generatedSeats) {
+        const seatKey = `seat:${seat.id}`;
+        const existingSeat = await redis.get(seatKey);
+        if (!existingSeat) {
+          await redis.set(seatKey, JSON.stringify(seat));
+          actualSeats.push(seat);
+        } else {
+          const parsedSeat = JSON.parse(existingSeat);
+          if (!parsedSeat.id) {
+            parsedSeat.id = seat.id;
+          }
+          if (!parsedSeat.row) {
+            parsedSeat.row = seat.row;
+          }
+          if (!parsedSeat.number) {
+            parsedSeat.number = seat.number;
+          }
+          if (!parsedSeat.status) {
+            parsedSeat.status = 'available';
+          }
+          if (!parsedSeat.type) {
+            parsedSeat.type = type;
+          }
+          actualSeats.push(parsedSeat);
+        }
       }
-      
-      return JSON.parse(seats);
+      return actualSeats;
     },
     me: async (_: any, __: any, context: any) => {
       if (!context.user) {
@@ -105,7 +125,7 @@ export const resolvers = {
         }
       };
     },
-    bookSeats: async (_: any, { seatIds, type }: { seatIds: number[], type: string }, context: any) => {
+    bookSeats: async (_: any, { seatIds, type }: { seatIds: string[], type: string }, context: any) => {
       if (!context.user) {
         throw new Error('Not authenticated');
       }
@@ -114,26 +134,30 @@ export const resolvers = {
         throw new Error('Нельзя забронировать больше 4 мест одновременно');
       }
 
+      const redis = await initRedis();
+
+      // Проверим существование мест перед бронированием
+      for (const seatId of seatIds) {
+        const seatKey = `seat:${seatId}`;
+        const existingSeat = await redis.get(seatKey);
+        if (!existingSeat) {
+          // Если места нет в Redis, создадим его
+          const [seatType, row, number] = seatId.split('-');
+          const newSeat = {
+            id: seatId,
+            row: parseInt(row),
+            number: parseInt(number),
+            status: 'available',
+            type: seatType
+          };
+          await redis.set(seatKey, JSON.stringify(newSeat));
+        }
+      }
+
       const bookedSeats = [];
       for (const seatId of seatIds) {
-        // Сначала получаем место и проверяем его статус
-        const redis = await initRedis();
-        const seatsKey = `seats:${type}`;
-        const seatsData = await redis.get(seatsKey);
-        if (!seatsData) {
-          throw new Error('Seats not found');
-        }
-        const seats = JSON.parse(seatsData);
-        const seat = seats.find((s: any) => s.id === seatId);
-        
-        if (seat.status === 'booked') {
-          throw new Error('Место уже забронировано');
-        }
-        
-        // Если место свободно, бронируем его
         const bookedSeat = await bookSeat(seatId, context.user.id, type);
         bookedSeats.push(bookedSeat);
-        await sendBookingMessage(bookedSeat);
       }
       
       return bookedSeats;

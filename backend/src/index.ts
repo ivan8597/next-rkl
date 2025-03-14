@@ -4,12 +4,11 @@ import { expressMiddleware } from '@apollo/server/express4';
 import cors from 'cors';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
-import { initKafka } from './kafka';
 import { initRedis } from './redis';
 import jwt from 'jsonwebtoken';
 
 const app = express();
-await Promise.all([initRedis(), initKafka()]);
+await initRedis();
 const server = new ApolloServer({
   typeDefs,
   resolvers,

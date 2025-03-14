@@ -1,60 +1,54 @@
-import createClient from './redis.mock.js';
-import { RedisClientType } from 'redis';
+import createClient from './redis.mock';
 
-let redisClient: RedisClientType | null = null;
+export const redis = createClient();
 
 export async function initRedis() {
-  if (!redisClient) {
-    redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
-    });
-
-    await redisClient.connect();
+  if (!redis.isOpen) {
+    await redis.connect();
   }
-  return redisClient;
+  return redis;
 }
 
-export const bookSeat = async (seatId: number, userId: string, type: string) => {
-  const redis = await initRedis();
-  const seatsKey = `seats:${type}`;
+export async function bookSeat(seatId: string, userId: string, type: string) {
+  const seatData = await redis.get(`seat:${seatId}`);
   
-  const seatsData = await redis.get(seatsKey);
-  if (!seatsData) {
-    throw new Error('Seats not found');
+  if (!seatData) {
+    // Если места нет, создаем его
+    const [seatType, rowStr, numberStr] = seatId.split('-');
+    const newSeat = {
+      id: seatId,
+      row: parseInt(rowStr),
+      number: parseInt(numberStr),
+      status: 'available',
+      type: seatType
+    };
+    await redis.set(`seat:${seatId}`, JSON.stringify(newSeat));
+    return bookSeat(seatId, userId, type); // Рекурсивно вызываем для бронирования
   }
 
-  const seats = JSON.parse(seatsData);
-  
-  const seatIndex = seats.findIndex((seat: any) => seat.id === seatId);
-  if (seats[seatIndex].status === 'booked') {
-    throw new Error('Место уже забронировано');
+  const seat = JSON.parse(seatData);
+  if (seat.status === 'booked') {
+    throw new Error('Seat already booked');
   }
 
-  seats[seatIndex].status = 'booked';
-  seats[seatIndex].userId = userId;
-  seats[seatIndex].expiresIn = Math.floor(Date.now() / 1000) + 900; // 15 минут
-  
-  await redis.set(seatsKey, JSON.stringify(seats));
-  await redis.set(`booking:${type}:${seatId}`, userId);
-  
-  return seats[seatIndex];
-};
+  const updatedSeat = {
+    id: seatId,
+    row: seat.row || parseInt(seatId.split('-')[1]),
+    number: seat.number || parseInt(seatId.split('-')[2]),
+    status: 'booked',
+    type: type,
+    userId: userId,
+    expiresIn: Math.floor(Date.now() / 1000) + 900 // 15 минут
+  };
 
-export const getSeat = async (seatId: number, type: string = 'cinema') => {
-  const redis = await initRedis();
-  const seatsKey = `seats:${type}`;
-  
-  const seatsData = await redis.get(seatsKey);
-  if (!seatsData) {
-    throw new Error('Seats not found');
-  }
+  await redis.set(`seat:${seatId}`, JSON.stringify(updatedSeat));
+  return updatedSeat;
+}
 
-  const seats = JSON.parse(seatsData);
-  const seat = seats.find((s: any) => s.id === seatId);
-  
-  if (!seat) {
+export async function getSeat(seatId: string) {
+  const seatData = await redis.get(`seat:${seatId}`);
+  if (!seatData) {
     throw new Error('Seat not found');
   }
-
-  return seat;
-};
+  return JSON.parse(seatData);
+}
