@@ -13,6 +13,8 @@ const GET_SEATS = gql`
       number
       status
       type
+      price
+      category
     }
   }
 `;
@@ -25,6 +27,8 @@ const BOOK_SEATS = gql`
       number
       status
       type
+      price
+      category
     }
   }
 `;
@@ -37,6 +41,8 @@ interface Seat {
   number: number;
   status: 'available' | 'booked';
   type: EventType;
+  price: number;
+  category: string;
 }
 
 interface SeatsData {
@@ -169,6 +175,20 @@ export default function Home() {
       <div className="mb-6 p-4 bg-white rounded-lg shadow-sm text-indigo-900">
         <p>Тип события: {eventType}</p>
         <p>Количество мест: {data.seats.length}</p>
+        <div className="mt-2 flex gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-500"></div>
+            <span>VIP</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500"></div>
+            <span>Standard</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-500"></div>
+            <span>Economy</span>
+          </div>
+        </div>
       </div>
 
       <motion.div layout className="grid grid-cols-3 gap-6 mb-6">
@@ -184,7 +204,11 @@ export default function Home() {
               group relative p-6 rounded-lg shadow-lg
               ${seat.status === 'booked'
                 ? 'bg-rose-500 text-white cursor-not-allowed'
-                : 'bg-emerald-500 text-white hover:bg-indigo-500 transition-colors'
+                : seat.category === 'vip'
+                ? 'bg-green-500 text-white hover:bg-indigo-500 transition-colors'
+                : seat.category === 'standard'
+                ? 'bg-blue-500 text-white hover:bg-indigo-500 transition-colors'
+                : 'bg-red-500 text-white hover:bg-indigo-500 transition-colors'
               }
             `}
             onClick={() => handleSeatClick(seat)}
@@ -194,6 +218,12 @@ export default function Home() {
             <div className="text-lg">Место {seat.number}</div>
             <div className="text-sm opacity-75">
               {seat.status === 'booked' ? 'Забронировано' : 'Свободно'}
+            </div>
+            <div className="text-sm mt-2">
+              Цена: {seat.price}₽
+            </div>
+            <div className="text-sm">
+              Категория: {seat.category}
             </div>
 
             <motion.div

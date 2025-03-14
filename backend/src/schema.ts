@@ -18,6 +18,18 @@ export const typeDefs = gql`
     concert
   }
 
+  enum SeatCategory {
+    standard
+    vip
+    economy
+  }
+
+  enum BookingStatus {
+    active
+    expired
+    cancelled
+  }
+
   type User {
     id: ID!
     email: String!
@@ -30,23 +42,32 @@ export const typeDefs = gql`
   }
 
   type Seat {
-    id: String!
+    id: ID!
     row: Int!
     number: Int!
-    status: SeatStatus!
-    type: EventType!
-    expiresIn: String
-    userId: String
+    status: String!
+    type: String!
+    price: Int!
+    category: String!
   }
 
   type Query {
     seats(type: String!): [Seat!]!
     me: User
+    userBookings: [Booking!]!
   }
 
   type Mutation {
     signIn(email: String!, password: String!): AuthResponse!
     signUp(email: String!, password: String!, name: String): AuthResponse!
     bookSeats(seatIds: [String!]!, type: String!): [Seat!]!
+  }
+
+  type Booking {
+    id: ID!
+    seats: [Seat!]!
+    userId: String!
+    createdAt: String!
+    status: BookingStatus!
   }
 `;

@@ -1,6 +1,5 @@
 {
   "name": "frontend",
-  "type": "module",
   "dependencies": {
     "@apollo/client": "^3.9.5",
     "framer-motion": "^11.18.2",

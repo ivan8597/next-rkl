@@ -4,4 +4,6 @@ export interface Seat {
   number: number;
   status: 'available' | 'booked';
   type: string;
+  price: number;
+  category: 'standard' | 'vip' | 'economy';
 }

@@ -4,8 +4,26 @@ import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// Временное хранилище пользователей (в реальном приложении используйте базу данных)
+// Временное хранилище пользователей
 const users = new Map();
+
+export const getPrice = (row: number, type: string): number => {
+  if (type === 'airplane') {
+    return row <= 2 ? 15000 : row <= 5 ? 10000 : 7000;
+  } else if (type === 'concert') {
+    return row <= 3 ? 8000 : row <= 8 ? 5000 : 3000;
+  }
+  return row <= 2 ? 500 : 300; // cinema
+};
+
+export const getCategory = (row: number, type: string): string => {
+  if (type === 'airplane') {
+    return row <= 2 ? 'vip' : row <= 5 ? 'standard' : 'economy';
+  } else if (type === 'concert') {
+    return row <= 3 ? 'vip' : row <= 8 ? 'standard' : 'economy';
+  }
+  return row <= 2 ? 'vip' : 'standard'; // cinema
+};
 
 const generateSeats = (type: string) => {
   const seats = [];
@@ -19,7 +37,9 @@ const generateSeats = (type: string) => {
         row,
         number,
         status: 'available',
-        type
+        type,
+        price: getPrice(row, type),
+        category: getCategory(row, type)
       });
     }
   }
@@ -55,6 +75,12 @@ export const resolvers = {
           }
           if (!parsedSeat.type) {
             parsedSeat.type = type;
+          }
+          if (!parsedSeat.price) {
+            parsedSeat.price = getPrice(parsedSeat.row, type);
+          }
+          if (!parsedSeat.category) {
+            parsedSeat.category = getCategory(parsedSeat.row, type);
           }
           actualSeats.push(parsedSeat);
         }
@@ -143,12 +169,16 @@ export const resolvers = {
         if (!existingSeat) {
           // Если места нет в Redis, создадим его
           const [seatType, row, number] = seatId.split('-');
+          const rowNum = parseInt(row);
+          const numNum = parseInt(number);
           const newSeat = {
             id: seatId,
-            row: parseInt(row),
-            number: parseInt(number),
+            row: rowNum,
+            number: numNum,
             status: 'available',
-            type: seatType
+            type: seatType,
+            price: getPrice(rowNum, seatType),
+            category: getCategory(rowNum, seatType)
           };
           await redis.set(seatKey, JSON.stringify(newSeat));
         }

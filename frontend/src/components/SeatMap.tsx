@@ -30,6 +30,20 @@ export default function SeatMap({ seats, selectedSeats, setSelectedSeats }: Seat
 
   return (
     <div className="seat-map">
+      <div className="legend flex gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-red-200"></div>
+          <span>Economy</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-blue-200"></div>
+          <span>Standard</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-green-200"></div>
+          <span>VIP</span>
+        </div>
+      </div>
       {seats
         .reduce((uniqueRows, seat) => {
           const rowLabel = getRowLabel(seat.row);
@@ -49,14 +63,19 @@ export default function SeatMap({ seats, selectedSeats, setSelectedSeats }: Seat
                       ? 'bg-red-500'
                       : selectedSeats.includes(seat.id)
                       ? 'bg-blue-500'
-                      : 'bg-green-500'
+                      : seat.category === 'vip'
+                      ? 'bg-green-200'
+                      : seat.category === 'standard'
+                      ? 'bg-blue-200'
+                      : 'bg-red-200'
                   } cursor-pointer p-4 rounded`}
                   onClick={() => seat.status !== 'booked' && handleSeatClick(seat)}
                   data-cy={`seat-${seat.status}`}
                   disabled={seat.status === 'booked'}
-                  aria-label={`Место ${seat.number}, ряд ${rowLabel}`}
+                  aria-label={`Место ${seat.number}, ряд ${rowLabel}, категория ${seat.category}, цена ${seat.price}`}
                 >
-                  {seat.number}
+                  <div>{seat.number}</div>
+                  <div className="text-xs">{seat.price}₽</div>
                 </button>
               ))}
           </div>
