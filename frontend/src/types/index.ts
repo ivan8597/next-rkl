@@ -5,5 +5,11 @@ export interface Seat {
   status: 'available' | 'booked';
   type: string;
   price: number;
-  category: 'standard' | 'vip' | 'economy';
+  category: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
 }

@@ -1,1 +1,1 @@
-import { createClient } from 'redis';  // Этот импорт пытается подключиться к Redis 
+import { createClient } from 'redis'; 

@@ -1,5 +1,6 @@
 import createClient from './redis.mock';
 import { getPrice, getCategory } from './resolvers';
+import { sendBookingEvent } from './kafka';
 
 export const redis = createClient();
 
@@ -14,7 +15,7 @@ export async function bookSeat(seatId: string, userId: string, type: string) {
   const seatData = await redis.get(`seat:${seatId}`);
   
   if (!seatData) {
-    // Если места нет, создаем его
+   
     const [seatType, rowStr, numberStr] = seatId.split('-');
     const rowNum = parseInt(rowStr);
     const numNum = parseInt(numberStr);
@@ -49,13 +50,21 @@ export async function bookSeat(seatId: string, userId: string, type: string) {
   };
 
   await redis.set(`seat:${seatId}`, JSON.stringify(updatedSeat));
+  
+  // Отправляем событие в Kafka
+  try {
+    await sendBookingEvent(seatId, userId);
+  } catch (error) {
+    console.error('Не удалось отправить событие Kafka:', error);
+  }
+  
   return updatedSeat;
 }
 
 export async function getSeat(seatId: string) {
   const seatData = await redis.get(`seat:${seatId}`);
   if (!seatData) {
-    throw new Error('Seat not found');
+    throw new Error('Место не найдено');
   }
   return JSON.parse(seatData);
 }

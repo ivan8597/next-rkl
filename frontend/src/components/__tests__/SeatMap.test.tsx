@@ -2,9 +2,9 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import SeatMap from '../SeatMap'
 
 const mockSeats = [
-  { id: '1', number: 1, row: 1, status: 'available' as const, type: 'cinema' },
-  { id: '2', number: 2, row: 1, status: 'booked' as const, type: 'cinema' },
-  { id: '3', number: 3, row: 1, status: 'available' as const, type: 'cinema' }
+  { id: '1', number: 1, row: 1, status: 'available' as const, type: 'standard', price: 300, category: 'standard' },
+  { id: '2', number: 2, row: 1, status: 'booked' as const, type: 'standard', price: 300, category: 'standard'},
+  { id: '3', number: 3, row: 1, status: 'available' as const, type: 'standard', price: 300, category: 'standard'}
 ]
 
 describe('SeatMap', () => {
@@ -14,7 +14,7 @@ describe('SeatMap', () => {
     mockSetSelectedSeats.mockClear()
   })
 
-  it('renders all seats', () => {
+  it('рендерит все места', () => {
     render(
       <SeatMap 
         seats={mockSeats} 
@@ -26,7 +26,7 @@ describe('SeatMap', () => {
     expect(screen.getAllByRole('button')).toHaveLength(3)
   })
 
-  it('handles seat selection', () => {
+  it('обрабатывает выбор места', () => {
     render(
       <SeatMap 
         seats={mockSeats} 
@@ -41,7 +41,7 @@ describe('SeatMap', () => {
     expect(mockSetSelectedSeats).toHaveBeenCalledWith(['1'])
   })
 
-  it('prevents selecting more than 4 seats', () => {
+  it('предотвращает выбор более 4 мест', () => {
     const mockAlert = jest.spyOn(window, 'alert').mockImplementation()
     
     render(

@@ -7,7 +7,7 @@ const vapidKeys = {
 };
 
 webpush.setVapidDetails(
-  'mailto:your-email@example.com',  // Замените на ваш email
+  'mailto:ivan8597@yandex.ru', 
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );

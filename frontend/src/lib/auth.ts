@@ -21,9 +21,9 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials: Credentials, req) {
-        console.log('Authorize called with:', credentials);
+        console.log('Authorize вызван с:', credentials);
         if (!credentials?.username || !credentials?.password) {
-          throw new Error('Missing username or password');
+          throw new Error('Отсутствует имя пользователя или пароль');
         }
         if (credentials.username === "user" && credentials.password === "password") {
           return {

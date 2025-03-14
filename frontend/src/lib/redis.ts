@@ -1,4 +1,4 @@
-import { Seat } from '../types';
+import { Seat } from '../types/index';
 
 export async function bookSeat(seatId: number): Promise<Seat | null> {
   try {
@@ -8,7 +8,7 @@ export async function bookSeat(seatId: number): Promise<Seat | null> {
     if (!response.ok) return null;
     return response.json();
   } catch (error) {
-    console.error('Error booking seat:', error);
+    console.error('Ошибка при бронировании места:', error);
     return null;
   }
 } 

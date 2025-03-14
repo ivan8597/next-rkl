@@ -5,10 +5,27 @@ import cors from 'cors';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
 import { initRedis } from './redis';
+import { initKafka } from './kafka';
 import jwt from 'jsonwebtoken';
 
 const app = express();
-await initRedis();
+
+// Инициализируем сервисы
+async function init() {
+  try {
+    await initRedis();
+    console.log('Redis инициализирован');
+    
+    await initKafka();
+    console.log('Kafka инициализирован');
+  } catch (err) {
+    console.error('Ошибка инициализации:', err);
+  }
+}
+
+// Запускаем инициализацию
+init();
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -39,5 +56,5 @@ app.use(
 );
 
 app.listen(4000, () => {
-  console.log('Server ready at http://localhost:4000/graphql');
+  console.log('Сервер готов по адресу http://localhost:4000/graphql');
 });

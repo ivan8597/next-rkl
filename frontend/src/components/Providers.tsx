@@ -3,7 +3,7 @@
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, from, gql } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
-import { useRouter } from 'next/navigation';
+
 
 const httpLink = createHttpLink({
   uri: 'http://localhost:4000/graphql',

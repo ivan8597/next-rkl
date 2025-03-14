@@ -2,16 +2,16 @@
 
 export async function subscribeToPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.error('Push notifications not supported');
+    console.error('Push-уведомления не поддерживаются');
     return;
   }
 
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registered');
+    console.log('Service Worker зарегистрирован');
 
     const response = await fetch('/api/vapid-key');
-    if (!response.ok) throw new Error('Failed to get VAPID key');
+    if (!response.ok) throw new Error('Не удалось получить VAPID ключ');
     
     const { publicKey } = await response.json();
 
@@ -19,7 +19,7 @@ export async function subscribeToPush() {
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
       await existingSubscription.unsubscribe(); // Удаляем старую подписку
-      console.log('Unsubscribed from previous subscription');
+      console.log('Отписан от предыдущей подписки');
     }
 
     const subscription = await registration.pushManager.subscribe({
@@ -35,8 +35,8 @@ export async function subscribeToPush() {
 
     if (!result.ok) throw new Error('Failed to subscribe');
     
-    console.log('Successfully subscribed to push notifications');
+    console.log('Успешно подписан на push-уведомления');
   } catch (error) {
-    console.error('Error subscribing to push:', error);
+    console.error('Ошибка при подписке на push-уведомления:', error);
   }
 }

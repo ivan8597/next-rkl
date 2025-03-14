@@ -182,11 +182,11 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-500"></div>
-            <span>Standard</span>
+            <span>Стандарт</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-500"></div>
-            <span>Economy</span>
+            <span>Эконом</span>
           </div>
         </div>
       </div>

@@ -8,6 +8,6 @@ webpush.setVapidDetails(
   vapidKeys.privateKey
 );
 
-console.log('Generated VAPID keys:', vapidKeys); // Для отладки
+console.log('Сгенерированные VAPID ключи:', vapidKeys); // Для отладки
 
 export { webpush, vapidKeys }; 

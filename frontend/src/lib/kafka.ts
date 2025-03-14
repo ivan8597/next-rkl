@@ -1,4 +1,4 @@
-import { Seat } from '@/types';
+import { Seat } from '@/types/index';
 
 export async function sendBookingMessage(seat: Seat): Promise<void> {
   try {
@@ -10,6 +10,6 @@ export async function sendBookingMessage(seat: Seat): Promise<void> {
       body: JSON.stringify(seat),
     });
   } catch (error) {
-    console.error('Error sending booking message:', error);
+    console.error('Ошибка при отправке сообщения о бронировании:', error);
   }
 } 

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { gql, useMutation, useQuery } from '@apollo/client';
+import { User } from '@/types/index';
 
 const SIGN_IN = gql`
   mutation SignIn($email: String!, $password: String!) {
@@ -38,12 +39,6 @@ const ME = gql`
     }
   }
 `;
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-}
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -83,25 +78,25 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('useAuth: Starting login...', { email, password });
+      console.log('useAuth: Начало входа...', { email, password });
       const { data } = await signIn({
         variables: { email, password },
       });
 
-      console.log('useAuth: Login response:', data);
+      console.log('useAuth: Ответ на вход:', data);
       if (!data?.signIn?.token) {
-        console.error('useAuth: No token in response');
-        throw new Error('No token received');
+        console.error('useAuth: Нет токена в ответе');
+        throw new Error('Не удалось получить токен');
       }
 
       const newToken = data.signIn.token;
       setUser(data.signIn.user);
       localStorage.setItem('token', newToken);
-      console.log('useAuth: Token saved, user set');
+      console.log('useAuth: Токен сохранен, пользователь установлен');
       return data.signIn.user;
     } catch (error: any) {
-      console.error('useAuth: Login error:', error);
-      throw new Error(error.graphQLErrors?.[0]?.message || 'Failed to login');
+      console.error('useAuth: Ошибка входа:', error);
+      throw new Error(error.graphQLErrors?.[0]?.message || 'Не удалось войти');
     }
   };
 
@@ -116,8 +111,8 @@ export function useAuth() {
       localStorage.setItem('token', newToken);
       return data.signUp.user;
     } catch (error: any) {
-      console.error('Registration error:', error);
-      throw new Error(error.graphQLErrors?.[0]?.message || 'Failed to register');
+      console.error('Ошибка регистрации:', error);
+      throw new Error(error.graphQLErrors?.[0]?.message || 'Не удалось зарегистрироваться');
     }
   };
 

@@ -4,8 +4,8 @@ import type { Metadata } from 'next';
 import type { Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Booking System',
-  description: 'A simple booking system',
+  title: 'Система бронирования',
+  description: 'Система бронирования',
 };
 
 export const viewport: Viewport = {

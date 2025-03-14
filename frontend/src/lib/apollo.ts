@@ -2,7 +2,7 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { gql } from '@apollo/client';
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql',  // Явно указываем URL
+  uri: 'http://localhost:4000/graphql', 
   credentials: 'include'
 });
 
@@ -26,7 +26,7 @@ client.query({
     }
   `
 }).then(() => {
-  console.log('GraphQL connected successfully');
+  console.log('GraphQL подключено успешно');
 }).catch(error => {
-  console.error('GraphQL connection error:', error);
+  console.error('GraphQL подключение ошибка:', error);
 }); 

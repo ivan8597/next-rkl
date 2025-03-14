@@ -9,20 +9,20 @@ function ErrorContent() {
 
   return (
     <div className="container">
-      <h1>Authentication Error</h1>
+      <h1>Ошибка аутентификации</h1>
       <div className="error">
         {error === 'CredentialsSignin' 
-          ? 'Invalid username or password'
-          : 'An error occurred during authentication'}
+          ? 'Неверное имя пользователя или пароль'
+          : 'Ошибка при аутентификации'}
       </div>
-      <a href="/auth/signin">Try again</a>
+      <a href="/auth/signin">Попробовать снова</a>
     </div>
   );
 }
 
 export default function ErrorPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Пожалуйста, подождите...</div>}>
       <ErrorContent />
     </Suspense>
   );

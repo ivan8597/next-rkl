@@ -14,6 +14,9 @@ const GET_SEATS = gql`
       row
       number
       status
+      price
+      category
+      type
     }
   }
 `;
@@ -26,6 +29,9 @@ const BOOK_SEATS = gql`
       row
       number
       status
+      price
+      category
+      type
     }
   }
 `;
@@ -49,8 +55,8 @@ function BookingContent() {
     setSelectedSeats([]);
   }, [type, refetch]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p>Пожалуйста, подождите...</p>;
+  if (error) return <p>Ошибка: {error.message}</p>;
 
   async function bookSeats(seats: string[]) {
     if (seats.length === 0) {
@@ -111,7 +117,7 @@ function BookingContent() {
 
 export default function Booking() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Пожалуйста, подождите...</div>}>
       <BookingContent />
     </Suspense>
   );

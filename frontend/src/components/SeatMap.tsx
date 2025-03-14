@@ -1,11 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Seat as SeatType } from '../types';
+import { Seat as SeatType } from '../types/index';
+
+interface Seat {
+  id: string;
+  row: number;
+  number: number;
+  status: 'available' | 'booked';
+  type?: string;
+  price?: number;
+  category?: string;
+}
 
 interface SeatMapProps {
   seats: SeatType[];
-  selectedSeats: string[]; // Обновляем тип на string[]
+  selectedSeats: string[]; 
   setSelectedSeats: (seats: string[]) => void; // Обновляем тип на string[]
 }
 
@@ -24,7 +34,7 @@ export default function SeatMap({ seats, selectedSeats, setSelectedSeats }: Seat
     }
   };
 
-  // Преобразуем числовые row в буквенные (1 -> A, 2 -> B, 3 -> C и т.д.)
+  
   const rowLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
   const getRowLabel = (rowNumber: number) => rowLabels[rowNumber - 1] || rowNumber.toString();
 
@@ -33,11 +43,11 @@ export default function SeatMap({ seats, selectedSeats, setSelectedSeats }: Seat
       <div className="legend flex gap-4 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-red-200"></div>
-          <span>Economy</span>
+          <span>Эконом</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-200"></div>
-          <span>Standard</span>
+          <span>Стандарт</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-200"></div>

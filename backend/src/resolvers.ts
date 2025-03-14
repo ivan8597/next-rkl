@@ -89,7 +89,7 @@ export const resolvers = {
     },
     me: async (_: any, __: any, context: any) => {
       if (!context.user) {
-        throw new Error('Not authenticated');
+        throw new Error('Не авторизован');
       }
       return context.user;
     }
@@ -98,12 +98,12 @@ export const resolvers = {
     signIn: async (_: any, { email, password }: { email: string, password: string }) => {
       const user = users.get(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('Пользователь не найден');
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        throw new Error('Invalid password');
+        throw new Error('Неверный пароль');
       }
 
       const token = jwt.sign(
@@ -123,7 +123,7 @@ export const resolvers = {
     },
     signUp: async (_: any, { email, password, name }: { email: string, password: string, name?: string }) => {
       if (users.has(email)) {
-        throw new Error('User already exists');
+        throw new Error('Пользователь уже существует');
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -153,7 +153,7 @@ export const resolvers = {
     },
     bookSeats: async (_: any, { seatIds, type }: { seatIds: string[], type: string }, context: any) => {
       if (!context.user) {
-        throw new Error('Not authenticated');
+        throw new Error('Не авторизован');
       }
 
       if (seatIds.length > 4) {
@@ -167,7 +167,7 @@ export const resolvers = {
         const seatKey = `seat:${seatId}`;
         const existingSeat = await redis.get(seatKey);
         if (!existingSeat) {
-          // Если места нет в Redis, создадим его
+          // Если места нет в Redis, создадим 
           const [seatType, row, number] = seatId.split('-');
           const rowNum = parseInt(row);
           const numNum = parseInt(number);
